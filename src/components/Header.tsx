@@ -5,11 +5,11 @@ export function Header() {
     <header className="flex items-center gap-5 py-2">
       <img src={nlwIcon} alt="Logo" />
 
-      <nav className="flex items-center gap-5 ">
-        <a href="" className="font-medium text-sm text-zinc-300">
+      <nav className="flex items-center gap-5">
+        <a href="/eventos" className="font-medium text-sm text-zinc-300">
           Eventos
         </a>
-        <a href="" className="font-medium text-sm">
+        <a href="/participantes" className="font-medium text-sm">
           Participantes
         </a>
       </nav>
