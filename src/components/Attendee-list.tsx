@@ -31,45 +31,88 @@ interface Attendee {
 }
 
 export function AttendeeList() {
-  // const [search, setSearch] = useState("");
+  const [search, setSearch] = useState(() => {
+    const url = new URL(window.location.toString());
+
+    if (url.searchParams.has("page")) {
+      return url.searchParams.get("search") ?? "";
+    }
+
+    return "";
+  });
   const [attendees, setAttendees] = useState<Attendee[]>([]);
-  const [page, setPage] = useState(1);
+  const [page, setPage] = useState(() => {
+    const url = new URL(window.location.toString());
+
+    if (url.searchParams.has("page")) {
+      return Number(url.searchParams.get("page"));
+    }
+
+    return 1;
+  });
   const [total, setTotal] = useState(0);
 
   const totalPages = Math.ceil(total / 10);
 
+  function setCurrentPage(page: number) {
+    const url = new URL(window.location.toString());
+
+    url.searchParams.set("page", String(page));
+
+    window.history.pushState({}, "", url);
+
+    setPage(page);
+  }
+
+  function setCurrentSearch(search: string) {
+    const url = new URL(window.location.toString());
+
+    url.searchParams.set("search", search);
+
+    window.history.pushState({}, "", url);
+
+    setSearch(search);
+  }
+
   function onSearchInputChange(event: ChangeEvent<HTMLInputElement>) {
-    console.log(event.target.value);
+    setCurrentSearch(event.target.value);
+    setCurrentPage(1);
   }
 
   function goToFirstPage() {
-    setPage(1);
+    setCurrentPage(1);
   }
 
   function goToLastPage() {
-    setPage(totalPages);
+    setCurrentPage(totalPages);
   }
 
   function goToNextPage() {
-    setPage(page + 1);
+    setCurrentPage(page + 1);
   }
 
   function goToPreviousPage() {
-    setPage(page - 1);
+    setCurrentPage(page - 1);
   }
 
   useEffect(() => {
-    fetch(
-      `http://localhost:3333/events/9e9bd979-9d10-4915-b339-3786b1634f33/attendees?pageIndex=${
-        page - 1
-      }`
-    )
+    const url = new URL(
+      "http://localhost:3333/events/9e9bd979-9d10-4915-b339-3786b1634f33/attendees"
+    );
+
+    url.searchParams.set("pageIndex", String(page - 1));
+
+    if (search.length > 0) {
+      url.searchParams.set("query", search);
+    }
+
+    fetch(url)
       .then((response) => response.json())
       .then((data) => {
         setAttendees(data.attendees);
         setTotal(data.total);
       });
-  }, [page]);
+  }, [page, search]);
 
   return (
     <div className="flex flex-col gap-4">
@@ -78,9 +121,10 @@ export function AttendeeList() {
         <div className="w-72 px-3 py-1.5 border border-white/10 rounded-lg flex items-center gap-3">
           <Search className="size-4 text-emerald-300" />
           <input
-            className="flex-1 bg-transparent outline-none border-0 p-0 text-sm"
+            className="flex-1 bg-transparent outline-none border-0 p-0 text-sm focus:ring-0"
             placeholder="Buscar participante..."
             onChange={onSearchInputChange}
+            value={search}
           />
         </div>
       </div>
